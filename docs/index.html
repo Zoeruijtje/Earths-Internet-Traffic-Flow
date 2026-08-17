@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#030711" />
+  <meta name="description" content="A source-honest, Earth-centred foundation for visualising measured Internet infrastructure and activity." />
+  <title>Earth's Internet Traffic Flow — Earth Foundation</title>
+  <style>
+    :root{color-scheme:dark;--bg:#02050b;--panel:rgba(7,14,25,.78);--panel-solid:#091321;--line:rgba(174,207,255,.16);--text:#f2f7ff;--muted:#91a0b6;--cyan:#62e7ff;--teal:#5df2cc;--amber:#ffc66d;--danger:#ff8f87;--radius:22px;--shadow:0 24px 80px rgba(0,0,0,.48)}
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 42%,rgba(30,94,142,.14),transparent 37%),linear-gradient(180deg,rgba(1,5,13,.05),rgba(1,4,10,.54));z-index:1}
+    button{font:inherit;color:inherit}button:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+    #app{position:relative;width:100%;height:100%;isolation:isolate;background:#02050b}
+    #globe{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}#globe:active{cursor:grabbing}
+    .topbar{position:absolute;z-index:5;left:max(22px,env(safe-area-inset-left));right:max(22px,env(safe-area-inset-right));top:max(18px,env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+    .brand{display:flex;align-items:center;gap:12px;pointer-events:auto}.brand-mark{width:38px;height:38px;border:1px solid rgba(126,233,255,.32);border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 36% 31%,rgba(91,238,255,.32),rgba(13,53,76,.15) 45%,rgba(5,12,20,.82));box-shadow:0 0 35px rgba(57,206,255,.12)}
+    .brand-mark:after{content:"";width:17px;height:17px;border:1px solid rgba(116,237,255,.74);border-radius:50%;box-shadow:inset 5px 0 0 rgba(87,224,255,.13)}
+    .brand-copy strong{display:block;font-size:13px;letter-spacing:.15em;text-transform:uppercase}.brand-copy span{display:block;margin-top:3px;font-size:11px;color:var(--muted);letter-spacing:.04em}
+    .mode-pill{pointer-events:auto;display:flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid rgba(255,198,109,.27);border-radius:999px;background:rgba(11,18,29,.72);backdrop-filter:blur(18px);box-shadow:0 10px 35px rgba(0,0,0,.2);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#ffd89c}.mode-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px rgba(255,198,109,.7)}
+    .hero{position:absolute;z-index:4;left:max(28px,env(safe-area-inset-left));top:50%;transform:translateY(-50%);width:min(365px,31vw);pointer-events:none;text-shadow:0 2px 28px rgba(0,0,0,.82)}
+    .eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:15px;color:var(--cyan);font-size:10px;font-weight:750;letter-spacing:.19em;text-transform:uppercase}.eyebrow:before{content:"";width:29px;height:1px;background:var(--cyan);box-shadow:0 0 10px rgba(98,231,255,.6)}
+    h1{margin:0;font-size:clamp(37px,4.3vw,72px);line-height:.94;letter-spacing:-.055em;font-weight:680;max-width:700px}.hero p{margin:21px 0 0;max-width:330px;color:#b7c2d1;font-size:13px;line-height:1.65}
+    .inspector{position:absolute;z-index:6;right:max(22px,env(safe-area-inset-right));top:max(76px,calc(env(safe-area-inset-top) + 62px));bottom:max(22px,env(safe-area-inset-bottom));width:328px;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(180deg,rgba(10,20,34,.84),rgba(5,12,22,.72));backdrop-filter:blur(25px) saturate(1.15);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    .panel-head{padding:21px 21px 17px;border-bottom:1px solid var(--line)}.panel-kicker{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);font-weight:750}.panel-head h2{font-size:21px;letter-spacing:-.03em;margin:7px 0 6px}.panel-head p{margin:0;color:var(--muted);font-size:11px;line-height:1.5}
+    .panel-body{padding:16px 17px 20px;overflow:auto;overscroll-behavior:contain}.metric{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px 4px;border-bottom:1px solid rgba(174,207,255,.09)}.metric span{font-size:11px;color:var(--muted)}.metric strong{font-size:11px;font-weight:650}.metric strong.warn{color:#ffd59a}
+    .section-label{margin:18px 3px 9px;font-size:9px;font-weight:750;color:#8090a8;letter-spacing:.16em;text-transform:uppercase}.route-list{display:grid;gap:7px}.route{width:100%;border:1px solid rgba(159,202,255,.13);border-radius:14px;background:rgba(17,29,44,.54);padding:11px 12px;display:grid;grid-template-columns:8px 1fr auto;gap:10px;align-items:center;text-align:left;cursor:pointer;transition:.2s ease}.route:hover,.route.active{border-color:rgba(98,231,255,.4);background:rgba(25,48,65,.66);transform:translateY(-1px)}.route i{display:block;width:7px;height:7px;border-radius:50%;background:var(--route,#62e7ff);box-shadow:0 0 12px var(--route,#62e7ff)}.route b{font-size:11px;font-weight:650}.route small{font-size:9px;color:#8493a8;letter-spacing:.08em;text-transform:uppercase}
+    .notice{margin-top:15px;border:1px solid rgba(255,198,109,.2);border-radius:15px;background:rgba(48,35,17,.24);padding:12px 13px;color:#d7c39f;font-size:10px;line-height:1.55}.notice b{color:#ffe0aa}
+    .controls{position:absolute;z-index:7;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:7px;padding:6px;border:1px solid var(--line);border-radius:999px;background:rgba(6,13,23,.72);backdrop-filter:blur(18px);box-shadow:0 14px 45px rgba(0,0,0,.28)}.control{border:0;background:transparent;border-radius:999px;padding:8px 11px;cursor:pointer;color:#bdc8d8;font-size:10px;font-weight:680;letter-spacing:.05em}.control:hover{background:rgba(133,203,255,.1);color:white}.control[data-active=true]{background:rgba(93,242,204,.12);color:#a9ffe9}
+    .credit{position:absolute;z-index:5;left:max(22px,env(safe-area-inset-left));bottom:max(20px,env(safe-area-inset-bottom));font-size:9px;color:#8492a6;letter-spacing:.025em}.credit a{color:#b3c5dd;text-decoration:none;border-bottom:1px solid rgba(179,197,221,.3)}
+    .labels{position:absolute;inset:0;z-index:3;pointer-events:none}.label{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px;padding:5px 7px;border:1px solid rgba(152,209,255,.18);border-radius:8px;background:rgba(3,10,18,.63);backdrop-filter:blur(8px);font-size:9px;color:#dceaff;white-space:nowrap;opacity:0;transition:opacity .18s}.label:before{content:"";width:4px;height:4px;border-radius:50%;background:var(--marker,#62e7ff);box-shadow:0 0 8px var(--marker,#62e7ff)}
+    .loading{position:absolute;z-index:20;inset:0;display:grid;place-items:center;background:#02050b;transition:opacity .7s ease,visibility .7s}.loading.done{opacity:0;visibility:hidden}.loader{text-align:center}.loader-orbit{width:64px;height:64px;margin:auto;border:1px solid rgba(104,222,255,.24);border-radius:50%;position:relative;animation:spin 1.8s linear infinite}.loader-orbit:after{content:"";position:absolute;left:28px;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 18px var(--cyan)}.loader p{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#98a9be;margin-top:18px}@keyframes spin{to{transform:rotate(360deg)}}
+    .sheet-toggle{display:none}
+    @media(max-width:1050px){.hero{width:285px}.inspector{width:295px}h1{font-size:42px}}
+    @media(max-width:900px){
+      .topbar{left:max(14px,env(safe-area-inset-left));right:max(14px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top))}.brand-copy span{display:none}.brand-mark{width:34px;height:34px}.mode-pill{padding:8px 10px;font-size:8px}
+      .hero{left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:max(78px,calc(env(safe-area-inset-top) + 64px));transform:none;width:auto;text-align:center}.eyebrow{justify-content:center;margin-bottom:9px}.hero h1{font-size:clamp(29px,8.6vw,43px);line-height:.98}.hero p{display:none}
+      .inspector{left:10px;right:10px;top:auto;bottom:max(10px,env(safe-area-inset-bottom));width:auto;height:94px;border-radius:24px;transition:height .42s cubic-bezier(.2,.8,.2,1);background:linear-gradient(180deg,rgba(10,21,34,.93),rgba(5,12,22,.92))}.inspector.expanded{height:min(430px,64vh)}.panel-head{padding:13px 50px 12px 17px;cursor:pointer}.panel-head h2{font-size:16px;margin:4px 0 1px}.panel-head p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.panel-body{padding:8px 13px 17px}.sheet-toggle{display:grid;place-items:center;position:absolute;right:13px;top:17px;width:34px;height:34px;border:1px solid rgba(165,211,255,.15);border-radius:50%;background:rgba(113,185,232,.08);cursor:pointer}.sheet-toggle:after{content:"";width:8px;height:8px;border-left:1.5px solid #c4e6ff;border-top:1.5px solid #c4e6ff;transform:rotate(45deg) translate(2px,2px);transition:.3s}.expanded .sheet-toggle:after{transform:rotate(225deg) translate(-2px,-2px)}
+      .controls{left:max(14px,env(safe-area-inset-left));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 106px);transform:none}.control{padding:8px 9px}.credit{left:auto;right:max(14px,env(safe-area-inset-right));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 112px);max-width:145px;text-align:right;line-height:1.35}.labels .label{font-size:8px;padding:4px 6px}
+    }
+    @media(max-width:900px) and (orientation:landscape){.hero{top:max(54px,calc(env(safe-area-inset-top) + 41px));left:max(16px,env(safe-area-inset-left));right:auto;text-align:left;width:240px}.eyebrow{justify-content:flex-start}.hero h1{font-size:30px}.inspector{left:auto;right:max(9px,env(safe-area-inset-right));bottom:max(9px,env(safe-area-inset-bottom));width:min(340px,43vw);height:80px}.inspector.expanded{height:calc(100vh - max(18px,env(safe-area-inset-top)) - max(18px,env(safe-area-inset-bottom)))}.controls{bottom:max(15px,env(safe-area-inset-bottom))}.credit{left:max(15px,env(safe-area-inset-left));right:auto;bottom:58px;text-align:left;max-width:180px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+  </style>
+</head>
+<body>
+  <main id="app">
+    <canvas id="globe" aria-label="Interactive three-dimensional Earth"></canvas>
+    <div class="labels" id="labels" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark" aria-hidden="true"></div><div class="brand-copy"><strong>Earth / Net</strong><span>Measured infrastructure visualisation</span></div></div>
+      <div class="mode-pill"><span class="mode-dot"></span>Derived visual · sources disconnected</div>
+    </header>
+    <section class="hero" aria-labelledby="page-title">
+      <div class="eyebrow">Earth rendering foundation</div>
+      <h1 id="page-title">The Internet has a geography.</h1>
+      <p>This pass establishes the truthful visual frame: a physically coherent Earth, correctly attached markers and great-circle geometry, before any measured network source is connected.</p>
+    </section>
+    <aside class="inspector" id="inspector" aria-label="Visualisation status and prototype routes">
+      <button class="sheet-toggle" id="sheet-toggle" aria-label="Expand information panel" aria-expanded="false"></button>
+      <div class="panel-head" id="panel-head"><div class="panel-kicker">Selected checkpoint</div><h2 id="selection-title">Amsterdam, NL</h2><p id="selection-copy">Earth-local marker · 52.3676° N, 4.9041° E</p></div>
+      <div class="panel-body">
+        <div class="metric"><span>Imagery</span><strong>NASA Blue / Black Marble</strong></div>
+        <div class="metric"><span>Solar model</span><strong id="utc-state">UTC-derived</strong></div>
+        <div class="metric"><span>Network feeds</span><strong class="warn">Disconnected</strong></div>
+        <div class="metric"><span>Route semantics</span><strong class="warn">Derived geometry only</strong></div>
+        <div class="section-label">Great-circle test geometry</div>
+        <div class="route-list" id="route-list"></div>
+        <div class="notice"><b>No live-traffic claim.</b> These lines validate Earth-local endpoints, curvature, occlusion and stable screen width. They are not packet streams, measured routes or throughput.</div>
+      </div>
+    </aside>
+    <nav class="controls" aria-label="Earth controls"><button class="control" id="reset">Reset view</button><button class="control" id="rotation" data-active="true">Slow rotation</button></nav>
+    <div class="credit">Earth imagery: <a href="https://visibleearth.nasa.gov/" target="_blank" rel="noreferrer">NASA Visible Earth</a> · not real-time</div>
+    <div class="loading" id="loading"><div class="loader"><div class="loader-orbit"></div><p>Loading attributed Earth imagery</p></div></div>
+  </main>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js';
+
+    const DAY_URL='https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57752/land_ocean_ice_2048.png';
+    const NIGHT_URL='https://eoimages.gsfc.nasa.gov/images/imagerecords/55000/55167/land_ocean_ice_lights_2048.png';
+    const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canvas=document.querySelector('#globe');
+    const loading=document.querySelector('#loading');
+    const labelsHost=document.querySelector('#labels');
+    const inspector=document.querySelector('#inspector');
+    const sheetToggle=document.querySelector('#sheet-toggle');
+    const panelHead=document.querySelector('#panel-head');
+    const title=document.querySelector('#selection-title');
+    const copy=document.querySelector('#selection-copy');
+    const routeList=document.querySelector('#route-list');
+    const rotationButton=document.querySelector('#rotation');
+    const resetButton=document.querySelector('#reset');
+
+    const points=[
+      {id:'ams',name:'Amsterdam, NL',lat:52.3676,lon:4.9041,color:'#62e7ff'},
+      {id:'nyc',name:'New York, US',lat:40.7128,lon:-74.0060,color:'#8ba7ff'},
+      {id:'sin',name:'Singapore, SG',lat:1.3521,lon:103.8198,color:'#5df2cc'},
+      {id:'sao',name:'São Paulo, BR',lat:-23.5505,lon:-46.6333,color:'#ffc66d'},
+      {id:'cpt',name:'Cape Town, ZA',lat:-33.9249,lon:18.4241,color:'#ff91c8'}
+    ];
+    const routes=points.slice(1).map((point,index)=>({from:points[0],to:point,color:point.color,index}));
+
+    const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=.96;
+    renderer.setClearColor(0x02050b,1);
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(34,1,.05,80);
+    camera.position.set(0,0,4.1);
+    const earthFrame=new THREE.Group();
+    earthFrame.rotation.x=THREE.MathUtils.degToRad(-7.2);
+    earthFrame.rotation.y=THREE.MathUtils.degToRad(-17);
+    scene.add(earthFrame);
+
+    function latLon(lat,lon,r=1){const phi=THREE.MathUtils.degToRad(lat),lam=THREE.MathUtils.degToRad(lon),c=Math.cos(phi);return new THREE.Vector3(c*Math.sin(lam),Math.sin(phi),c*Math.cos(lam)).multiplyScalar(r)}
+    function slerp(a,b,t){const dot=THREE.MathUtils.clamp(a.dot(b),-1,1),omega=Math.acos(dot);if(omega<1e-6)return a.clone().lerp(b,t).normalize();return a.clone().multiplyScalar(Math.sin((1-t)*omega)/Math.sin(omega)).addScaledVector(b,Math.sin(t*omega)/Math.sin(omega)).normalize()}
+    function solarDirection(date){const jd=date.getTime()/86400000+2440587.5,T=(jd-2451545)/36525,n=jd-2451545;const L=THREE.MathUtils.degToRad((280.460+0.9856474*n)%360),g=THREE.MathUtils.degToRad((357.528+0.9856003*n)%360);const lam=L+THREE.MathUtils.degToRad(1.915)*Math.sin(g)+THREE.MathUtils.degToRad(.020)*Math.sin(2*g);const eps=THREE.MathUtils.degToRad(23.4393-.013*T);const eci=new THREE.Vector3(Math.cos(lam),Math.cos(eps)*Math.sin(lam),Math.sin(eps)*Math.sin(lam));const gmst=THREE.MathUtils.degToRad((280.46061837+360.98564736629*(jd-2451545)+.000387933*T*T-(T*T*T)/38710000)%360);const c=Math.cos(gmst),s=Math.sin(gmst);const ex=c*eci.x+s*eci.y,ey=-s*eci.x+c*eci.y,ez=eci.z;return new THREE.Vector3(ey,ez,ex).normalize()}
+
+    const sunDir=solarDirection(new Date());
+    const textureLoader=new THREE.TextureLoader();textureLoader.setCrossOrigin('anonymous');
+    const loadTexture=url=>new Promise((resolve,reject)=>textureLoader.load(url,t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());resolve(t)},undefined,reject));
+    let earth,atmosphere;
+
+    function makeEarth(day,night){
+      const material=new THREE.ShaderMaterial({uniforms:{uDay:{value:day},uNight:{value:night},uSun:{value:sunDir},uCamera:{value:new THREE.Vector3()}},vertexShader:`varying vec3 vN;varying vec3 vW;varying vec2 vUv;void main(){vUv=uv;vN=normalize(mat3(modelMatrix)*normal);vec4 world=modelMatrix*vec4(position,1.0);vW=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`,fragmentShader:`uniform sampler2D uDay;uniform sampler2D uNight;uniform vec3 uSun;uniform vec3 uCamera;varying vec3 vN;varying vec3 vW;varying vec2 vUv;void main(){vec3 n=normalize(vN);float ndl=dot(n,normalize(uSun));float daylight=smoothstep(-.14,.18,ndl);vec3 day=texture2D(uDay,vUv).rgb;vec3 night=texture2D(uNight,vUv).rgb;night=pow(night,vec3(1.18))*1.15;float ocean=smoothstep(.03,.26,day.b-max(day.r,day.g)*.58);vec3 v=normalize(uCamera-vW);vec3 h=normalize(v+normalize(uSun));float spec=pow(max(dot(n,h),0.0),120.0)*ocean*daylight*.42;float rim=pow(1.0-max(dot(n,v),0.0),3.0);vec3 colour=mix(night*.84,day,daylight);colour+=vec3(.50,.70,.86)*spec+vec3(.035,.10,.17)*rim*daylight;gl_FragColor=vec4(colour,1.0);}`});
+      earth=new THREE.Mesh(new THREE.SphereGeometry(1,128,96),material);earthFrame.add(earth);
+      atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.035,96,64),new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.BackSide,blending:THREE.AdditiveBlending,uniforms:{uSun:{value:sunDir},uCamera:{value:new THREE.Vector3()}},vertexShader:`varying vec3 vN;varying vec3 vW;void main(){vN=normalize(mat3(modelMatrix)*normal);vec4 w=modelMatrix*vec4(position,1.0);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,fragmentShader:`uniform vec3 uSun;uniform vec3 uCamera;varying vec3 vN;varying vec3 vW;void main(){vec3 n=normalize(vN);vec3 v=normalize(uCamera-vW);float rim=pow(1.0-abs(dot(n,v)),2.65);float day=smoothstep(-.35,.45,dot(n,normalize(uSun)));vec3 c=mix(vec3(.10,.20,.42),vec3(.16,.67,1.0),day);gl_FragColor=vec4(c,rim*(.16+.34*day));}` }));earthFrame.add(atmosphere);
+    }
+
+    function makeStars(){const count=2200,pos=new Float32Array(count*3),col=new Float32Array(count*3);for(let i=0;i<count;i++){const z=Math.random()*2-1,a=Math.random()*Math.PI*2,r=12+Math.random()*22,s=Math.sqrt(1-z*z);pos[i*3]=r*s*Math.cos(a);pos[i*3+1]=r*z;pos[i*3+2]=r*s*Math.sin(a);const k=.48+Math.random()*.48;col[i*3]=k*.78;col[i*3+1]=k*.88;col[i*3+2]=k}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({size:.025,vertexColors:true,transparent:true,opacity:.82,sizeAttenuation:true,depthWrite:false})))}
+    makeStars();
+
+    const markerMeshes=[];const labelNodes=[];
+    function makeMarkers(){const geo=new THREE.SphereGeometry(.016,20,14);for(const p of points){const group=new THREE.Group(),surface=latLon(p.lat,p.lon,1.018),normal=surface.clone().normalize();group.position.copy(surface);group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),normal);const stem=new THREE.Mesh(new THREE.CylinderGeometry(.003,.005,.045,10),new THREE.MeshBasicMaterial({color:p.color,transparent:true,opacity:.76}));stem.position.y=.022;group.add(stem);const dot=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:p.color}));dot.position.y=.052;dot.userData.point=p;group.add(dot);earthFrame.add(group);markerMeshes.push(dot);const node=document.createElement('div');node.className='label';node.textContent=p.name;node.style.setProperty('--marker',p.color);labelsHost.append(node);labelNodes.push({node,anchor:dot,point:p})}}
+
+    function arcMaterial(color){return new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,uniforms:{uResolution:{value:new THREE.Vector2(1,1)},uWidth:{value:1.6},uColor:{value:new THREE.Color(color)}},vertexShader:`attribute vec3 previous;attribute vec3 next;attribute float side;attribute float progress;uniform vec2 uResolution;uniform float uWidth;varying float vProgress;void main(){vec4 c=projectionMatrix*modelViewMatrix*vec4(position,1.0);vec4 p=projectionMatrix*modelViewMatrix*vec4(previous,1.0);vec4 n=projectionMatrix*modelViewMatrix*vec4(next,1.0);vec2 cN=c.xy/c.w,pN=p.xy/p.w,nN=n.xy/n.w;vec2 dir=normalize(nN-pN);if(length(dir)<.0001)dir=vec2(1.0,0.0);vec2 perp=vec2(-dir.y,dir.x);vec2 px=2.0*uWidth/uResolution;vec2 off=perp*px*side;c.xy+=off*c.w;gl_Position=c;vProgress=progress;}`,fragmentShader:`uniform vec3 uColor;varying float vProgress;void main(){float edge=smoothstep(0.0,.035,vProgress)*smoothstep(0.0,.035,1.0-vProgress);gl_FragColor=vec4(uColor,.78*edge);}`})}
+    const arcMaterials=[];const arcObjects=[];
+    function makeArc(route){const a=latLon(route.from.lat,route.from.lon).normalize(),b=latLon(route.to.lat,route.to.lon).normalize(),angle=Math.acos(THREE.MathUtils.clamp(a.dot(b),-1,1)),segments=Math.max(64,Math.ceil(angle*80)),pts=[];for(let i=0;i<=segments;i++){const t=i/segments,alt=.014+Math.sin(Math.PI*t)*(.08+.16*angle/Math.PI);pts.push(slerp(a,b,t).multiplyScalar(1+alt))}const verts=[],prev=[],next=[],side=[],progress=[],idx=[];for(let i=0;i<pts.length;i++){const p=pts[i],pr=pts[Math.max(0,i-1)],nx=pts[Math.min(pts.length-1,i+1)];for(const s of [-1,1]){verts.push(p.x,p.y,p.z);prev.push(pr.x,pr.y,pr.z);next.push(nx.x,nx.y,nx.z);side.push(s);progress.push(i/(pts.length-1))}if(i<pts.length-1){const j=i*2;idx.push(j,j+1,j+2,j+1,j+3,j+2)}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.setAttribute('previous',new THREE.Float32BufferAttribute(prev,3));g.setAttribute('next',new THREE.Float32BufferAttribute(next,3));g.setAttribute('side',new THREE.Float32BufferAttribute(side,1));g.setAttribute('progress',new THREE.Float32BufferAttribute(progress,1));g.setIndex(idx);const m=arcMaterial(route.color);arcMaterials.push(m);const mesh=new THREE.Mesh(g,m);mesh.renderOrder=4;mesh.userData.route=route;earthFrame.add(mesh);arcObjects.push(mesh)}
+
+    makeMarkers();routes.forEach(makeArc);
+    routes.forEach((r,i)=>{const button=document.createElement('button');button.className='route'+(i===0?' active':'');button.style.setProperty('--route',r.color);button.innerHTML=`<i></i><b>Amsterdam → ${r.to.name.split(',')[0]}</b><small>test ${String(i+1).padStart(2,'0')}</small>`;button.addEventListener('click',()=>{document.querySelectorAll('.route').forEach(x=>x.classList.remove('active'));button.classList.add('active');selectPoint(r.to);focusPoint(r.to)});routeList.append(button)});
+
+    function selectPoint(p){title.textContent=p.name;copy.textContent=`Earth-local marker · ${Math.abs(p.lat).toFixed(4)}° ${p.lat>=0?'N':'S'}, ${Math.abs(p.lon).toFixed(4)}° ${p.lon>=0?'E':'W'}`}
+    function focusPoint(p){const target=latLon(p.lat,p.lon).normalize();const worldTarget=target.clone().applyQuaternion(earthFrame.quaternion);const desired=new THREE.Quaternion().setFromUnitVectors(worldTarget,new THREE.Vector3(0,0,1));earthFrame.quaternion.slerp(desired.multiply(earthFrame.quaternion),.68)}
+
+    let distance=4.1,drag=false,lastX=0,lastY=0,autoRotate=!reduceMotion,lastInteraction=performance.now(),pinchDistance=0;
+    function pointerDown(e){drag=true;lastX=e.clientX;lastY=e.clientY;lastInteraction=performance.now();canvas.setPointerCapture(e.pointerId)}
+    function pointerMove(e){if(!drag)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;earthFrame.rotation.y+=dx*.0042;earthFrame.rotation.x=THREE.MathUtils.clamp(earthFrame.rotation.x+dy*.0035,-1.15,1.15);lastInteraction=performance.now()}
+    function pointerUp(e){drag=false;try{canvas.releasePointerCapture(e.pointerId)}catch{};if(Math.hypot(e.clientX-lastX,e.clientY-lastY)<3)pick(e)}
+    canvas.addEventListener('pointerdown',pointerDown);canvas.addEventListener('pointermove',pointerMove);canvas.addEventListener('pointerup',pointerUp);canvas.addEventListener('pointercancel',()=>drag=false);
+    canvas.addEventListener('wheel',e=>{e.preventDefault();distance=THREE.MathUtils.clamp(distance+e.deltaY*.0024,2.35,6.4);lastInteraction=performance.now()},{passive:false});
+    canvas.addEventListener('touchstart',e=>{if(e.touches.length===2)pinchDistance=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)},{passive:true});
+    canvas.addEventListener('touchmove',e=>{if(e.touches.length===2&&pinchDistance){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);distance=THREE.MathUtils.clamp(distance+(pinchDistance-d)*.005,2.35,6.4);pinchDistance=d}},{passive:true});
+    const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+    function pick(e){const rect=canvas.getBoundingClientRect();mouse.x=((e.clientX-rect.left)/rect.width)*2-1;mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;raycaster.setFromCamera(mouse,camera);const hit=raycaster.intersectObjects(markerMeshes,false)[0];if(hit?.object?.userData?.point){selectPoint(hit.object.userData.point);if(innerWidth<=900){inspector.classList.add('expanded');sheetToggle.setAttribute('aria-expanded','true')}}}
+
+    function toggleSheet(){const expanded=inspector.classList.toggle('expanded');sheetToggle.setAttribute('aria-expanded',String(expanded))}sheetToggle.addEventListener('click',toggleSheet);panelHead.addEventListener('click',()=>{if(innerWidth<=900)toggleSheet()});
+    rotationButton.addEventListener('click',()=>{autoRotate=!autoRotate;rotationButton.dataset.active=String(autoRotate);rotationButton.textContent=autoRotate?'Slow rotation':'Rotation paused'});
+    resetButton.addEventListener('click',()=>{distance=fitDistance();earthFrame.rotation.set(THREE.MathUtils.degToRad(-7.2),THREE.MathUtils.degToRad(-17),0);selectPoint(points[0])});
+
+    function fitDistance(){const aspect=innerWidth/innerHeight;if(innerWidth<=900)return aspect<.7?4.75:aspect<1.2?4.35:3.55;return aspect>2?3.75:4.05}
+    function resize(){const w=canvas.clientWidth,h=canvas.clientHeight,dpr=Math.min(devicePixelRatio||1,innerWidth<=900?1.5:1.8);renderer.setPixelRatio(dpr);renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=innerWidth<=900?(w/h<.72?39:35):34;camera.updateProjectionMatrix();arcMaterials.forEach(m=>m.uniforms.uResolution.value.set(w*dpr,h*dpr));if(!drag&&Math.abs(distance-4.1)<.03)distance=fitDistance()}
+    addEventListener('resize',resize,{passive:true});resize();distance=fitDistance();
+
+    const world=new THREE.Vector3(),projected=new THREE.Vector3(),camDir=new THREE.Vector3();
+    function updateLabels(){camera.getWorldDirection(camDir);for(const item of labelNodes){item.anchor.getWorldPosition(world);projected.copy(world).project(camera);const facing=world.clone().sub(earthFrame.getWorldPosition(new THREE.Vector3())).normalize().dot(camera.position.clone().sub(world).normalize())>.12;const visible=facing&&projected.z<1&&projected.x>-1.1&&projected.x<1.1&&projected.y>-1.1&&projected.y<1.1;item.node.style.opacity=visible?'1':'0';item.node.style.left=`${(projected.x*.5+.5)*innerWidth}px`;item.node.style.top=`${(-projected.y*.5+.5)*innerHeight}px`}}
+
+    let last=performance.now();function animate(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(autoRotate&&!drag&&now-lastInteraction>1800)earthFrame.rotation.y+=dt*.035;camera.position.z+=(distance-camera.position.z)*Math.min(1,dt*6);if(earth){earth.material.uniforms.uCamera.value.copy(camera.position);atmosphere.material.uniforms.uCamera.value.copy(camera.position)}renderer.render(scene,camera);updateLabels();requestAnimationFrame(animate)}
+
+    Promise.all([loadTexture(DAY_URL),loadTexture(NIGHT_URL)]).then(([day,night])=>{makeEarth(day,night);loading.classList.add('done');document.querySelector('#utc-state').textContent=new Date().toISOString().replace('T',' ').slice(0,16)+' UTC';window.__EARTH_APP_READY__=true;window.__EARTH_DIAGNOSTICS__={renderer:'three.js r166 direct',webgl2:renderer.capabilities.isWebGL2,markers:markerMeshes.length,arcs:arcObjects.length,dataSourcesConnected:0,routeSemantics:'DERIVED VISUAL',nasaImagery:true};requestAnimationFrame(animate)}).catch(error=>{console.error(error);loading.querySelector('p').textContent='NASA imagery could not be loaded';loading.querySelector('.loader-orbit').style.borderColor='rgba(255,143,135,.5)';window.__EARTH_APP_READY__=false;window.__EARTH_DIAGNOSTICS__={error:String(error),dataSourcesConnected:0};});
+  </script>
+</body>
+</html>
