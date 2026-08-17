@@ -4,6 +4,7 @@ This staging file is temporary and will be removed before the implementation com
 
 ## Runtime and build roots
 
+- [Vite preview package built by official Vite CI at commit 83ecb2c](https://pkg.pr.new/vite@83ecb2c)
 - [Vite 7.1.5 npm tarball](https://registry.npmjs.org/vite/-/vite-7.1.5.tgz)
 - [React 19.2.0 npm tarball](https://registry.npmjs.org/react/-/react-19.2.0.tgz)
 - [React DOM 19.2.0 npm tarball](https://registry.npmjs.org/react-dom/-/react-dom-19.2.0.tgz)
