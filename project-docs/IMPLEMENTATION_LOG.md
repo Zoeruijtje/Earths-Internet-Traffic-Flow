@@ -75,6 +75,101 @@ Execute Phase 0 and the Earth-only portion of Phase 1 from `MASTER_IMPLEMENTATIO
 
 ---
 
+## 2026-08-17 — Phase 0 rebuild started after failed verification report
+
+**Time:** 2026-08-17 15:05 UTC  
+**Branch:** `build/phase-0-foundation-rebuild`  
+**Commit/PR:** branch created from `main`; PR not opened yet  
+**Objective:** Replace the prior CDN-dependent prototype with the mandated reproducible source scaffold and establish an auditable Phase 0 gate before any Phase 1 claim.
+
+### Repository state inspected
+
+- Live GitHub access confirmed.
+- `main` remains the planning baseline.
+- Existing `build/phase-0-1-earth-foundation` draft PR #1 remains open and unmerged.
+- The user supplied an HTML execution-report screenshot showing `FileNotFoundError` for publication and browser review and explicitly stating that no screenshots were produced.
+- The previous branch's `/docs/index.html` was verified to import Three.js from jsDelivr at runtime and to be manually authored rather than generated from the repository-mandated Vite source tree.
+
+### Changes implemented
+
+- Added `package.json` with pinned React, Three.js, Vite, TypeScript, Vitest, ESLint and Playwright dependencies and all required Phase 0 scripts.
+- Added strict `tsconfig.json`.
+- Added Vite configuration with relative production assets for GitHub Pages subpath safety.
+- Added React entry point and a restrained responsive observatory shell.
+- Added `EarthRenderer` using direct Three.js outside React's render cycle.
+- Added hidden-page throttling, capped DPR, resize lifecycle, pointer rotation, wheel zoom, reduced-motion-aware rotation and full disposal.
+- Defined the canonical Earth-local coordinate convention and added unit tests for cardinal coordinates, round trip, identical endpoints and antipodal great-circle interpolation.
+- Added browser shell test and seven-viewport screenshot test harness.
+- Added deterministic Pages build and verification scripts.
+- Added `project-docs/ARCHITECTURE.md`.
+- Updated `project-docs/STATUS.md` to report the actual open gate instead of claiming a completed implementation.
+
+### Data/API assumptions verified
+
+- No network source is connected by this branch.
+- No random routes, pseudo-live counters, packets, BGP messages, outage signals or fake source timestamps are produced.
+- The Phase 0 globe is intentionally a neutral renderer placeholder; it is **not** described as a photorealistic NASA Earth.
+- Phase 1 remains blocked until actual NASA-derived assets are processed, attributed and visually reviewed.
+
+### Commands and tests run
+
+| Command/test | Result | Evidence/notes |
+|---|---:|---|
+| Live repository/branch/PR inspection | PASS | GitHub connector calls succeeded. |
+| Source-tree audit | PASS | Rebuild branch contains the mandated initial source/test/build structure. |
+| `npm install` / clean lockfile install | **NOT RUN** | This chat runtime does not currently expose an unrestricted local Node package-install execution environment tied to the GitHub branch. |
+| `npm run typecheck` | **NOT RUN** | Must be executed against an exact installed commit. |
+| `npm run lint` | **NOT RUN** | Same blocker. |
+| `npm run test` | **NOT RUN** | Same blocker. |
+| `npm run build` | **NOT RUN** | Same blocker. |
+| `npm run build:pages` | **NOT RUN** | `/docs` deliberately not generated/committed without the source gate. |
+| `npm run verify:pages` | **NOT RUN** | Depends on a valid generated build. |
+| `npm run test:e2e` | **NOT RUN** | Browser runtime evidence not available yet. |
+| `npm run test:visual` | **NOT RUN** | Screenshot harness exists, but no screenshots are claimed. |
+
+### Screenshots reviewed
+
+| Viewport | State/mode | Pass/fail | Defects found or notes |
+|---|---|---:|---|
+| User-supplied previous report | Failed execution report | **FAIL** | Publication/browser-review `FileNotFoundError`; report states no screenshots were produced. |
+| 390 × 844 | Rebuild | NOT RUN | Harness added; no screenshot claim. |
+| 844 × 390 | Rebuild | NOT RUN | Harness added; no screenshot claim. |
+| 412 × 915 | Rebuild | NOT RUN | Harness added; no screenshot claim. |
+| 768 × 1024 | Rebuild | NOT RUN | Harness added; no screenshot claim. |
+| 1366 × 768 | Rebuild | NOT RUN | Harness added; no screenshot claim. |
+| 1920 × 1080 | Rebuild | NOT RUN | Harness added; no screenshot claim. |
+| 2560 × 1440 | Rebuild | NOT RUN | Harness added; no screenshot claim. |
+
+### Defects found and fixed
+
+- Corrected process-level status: a failed `FileNotFoundError` report is no longer represented as browser/screenshot evidence.
+- Replaced the architectural direction of the CDN prototype with a bundled dependency scaffold.
+- Established a documented coordinate basis instead of an ad hoc globe basis.
+- Added a generated-output workflow so future `/docs` content is not hand-authored.
+- Added actual test files and screenshot harnesses instead of relying on claimed but missing evidence.
+
+### Completed and verified
+
+- GitHub branch creation and repository write access.
+- Presence of the Phase 0 source, test, build and architecture scaffold in GitHub.
+- Explicit disconnected/no-fake-data product state in source.
+- Canonical Earth-local coordinate implementation and its intended unit-test coverage.
+
+### Known limitations / not implemented
+
+- The Phase 0 exit gate is not passed because package installation, typecheck, lint, unit tests, build, browser tests and screenshot generation have not been executed against the exact branch commit.
+- No `package-lock.json` has been generated yet.
+- `/docs` has not been generated from source on this rebuild branch.
+- No NASA Earth textures are enabled yet.
+- No visual claim such as “photorealistic,” “polished,” or “mobile verified” is made for this branch.
+- No live or recorded Internet-data adapter is implemented.
+
+### Next highest-value pass
+
+Run the complete clean-install Phase 0 command gate in a package-capable browser/test environment, fix every compile/lint/runtime defect, generate and inspect the seven mandatory screenshots, then commit the resulting lockfile and generated `/docs`. Only after that should Phase 1 begin with processed NASA Blue Marble and Black Marble derivatives.
+
+---
+
 ## Entry template for future passes
 
 ### YYYY-MM-DD — Short pass title
