@@ -6,13 +6,31 @@ Phase 0 establishes a conventional Vite + React + strict TypeScript application 
 
 ## Coordinate convention
 
-The entire future geographic scene will use one Earth-local frame:
+The entire future geographic scene uses one Earth-local frame:
 
 - `+Y` = geographic north pole;
 - `+X` = equator at longitude `0°`;
 - `+Z` = equator at longitude `+90°E`.
 
 All geographic markers, measurement arcs and later spatial overlays must be children of the Earth-local group rather than the scene root.
+
+Pointer/raycast coordinates are calculated from the canvas's CSS-pixel bounding rectangle. Device-pixel ratio is not applied to normalized device coordinates because pointer events and `getBoundingClientRect()` use the same CSS-pixel coordinate space.
+
+## Renderer lifecycle
+
+The direct renderer now owns:
+
+- deterministic decorative star geometry so screenshot comparisons are repeatable;
+- frame-rate-independent automatic Earth rotation;
+- hidden-page rendering suppression;
+- resize observation and quality-dependent DPR caps;
+- `Performance`, `Balanced`, and `High` renderer quality modes;
+- WebGL context-loss/restoration state;
+- renderer diagnostics (`renderer.info`) exposed to the low-frequency UI;
+- explicit reset/rotation controls;
+- complete listener, geometry, material and renderer disposal.
+
+The Phase 0 sphere and atmosphere remain deliberately neutral placeholders. They must not be called photorealistic or NASA-derived.
 
 ## Data state
 
