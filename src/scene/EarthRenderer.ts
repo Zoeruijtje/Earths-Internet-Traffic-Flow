@@ -1,5 +1,19 @@
 import * as THREE from 'three';
 
+export type QualityMode = 'performance' | 'balanced' | 'high';
+
+export interface RendererDiagnostics {
+  quality: QualityMode;
+  pixelRatio: number;
+  width: number;
+  height: number;
+  geometries: number;
+  textures: number;
+  drawCalls: number;
+  triangles: number;
+  contextLost: boolean;
+}
+
 export class EarthRenderer {
   private readonly canvas: HTMLCanvasElement;
   private readonly renderer: THREE.WebGLRenderer;
@@ -7,11 +21,15 @@ export class EarthRenderer {
   private readonly camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
   private readonly earthGroup = new THREE.Group();
   private readonly resizeObserver: ResizeObserver;
+  private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   private animationFrame = 0;
   private disposed = false;
   private pointerDown = false;
   private lastPointer = new THREE.Vector2();
   private autoRotate = true;
+  private quality: QualityMode = 'balanced';
+  private contextLost = false;
+  private lastFrameTime = performance.now();
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -23,25 +41,27 @@ export class EarthRenderer {
     this.scene.add(this.earthGroup);
     this.camera.position.set(0, 0, 4.2);
 
+    // Phase 0 deliberately uses a neutral sphere. NASA imagery is introduced only
+    // after the asset provenance/processing gate is complete in Phase 1.
     const placeholder = new THREE.Mesh(
       new THREE.SphereGeometry(1, 96, 64),
       new THREE.MeshStandardMaterial({ color: 0x18354a, roughness: 0.82, metalness: 0.02 }),
     );
+    placeholder.name = 'phase-0-neutral-earth';
     this.earthGroup.add(placeholder);
 
     const atmosphere = new THREE.Mesh(
       new THREE.SphereGeometry(1.028, 96, 64),
       new THREE.MeshBasicMaterial({ color: 0x6bd7ff, transparent: true, opacity: 0.055, side: THREE.BackSide }),
     );
+    atmosphere.name = 'phase-0-atmosphere-placeholder';
     this.earthGroup.add(atmosphere);
 
     const key = new THREE.DirectionalLight(0xffffff, 2.4);
     key.position.set(3, 1.2, 2.4);
     this.scene.add(key);
     this.scene.add(new THREE.AmbientLight(0x7890a8, 0.3));
-
-    const stars = this.createStars();
-    this.scene.add(stars);
+    this.scene.add(this.createStars());
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
@@ -51,21 +71,56 @@ export class EarthRenderer {
     canvas.addEventListener('pointerup', this.handlePointerUp);
     canvas.addEventListener('pointercancel', this.handlePointerUp);
     canvas.addEventListener('wheel', this.handleWheel, { passive: false });
+    canvas.addEventListener('webglcontextlost', this.handleContextLost);
+    canvas.addEventListener('webglcontextrestored', this.handleContextRestored);
     document.addEventListener('visibilitychange', this.handleVisibility);
 
     this.resize();
   }
 
   start(): void {
-    if (this.disposed) return;
+    if (this.disposed || this.animationFrame !== 0) return;
+    this.lastFrameTime = performance.now();
     this.animationFrame = requestAnimationFrame(this.render);
   }
 
-  private readonly render = (): void => {
+  setQuality(quality: QualityMode): void {
+    this.quality = quality;
+    this.resize();
+  }
+
+  setAutoRotate(enabled: boolean): void {
+    this.autoRotate = enabled;
+  }
+
+  resetView(): void {
+    this.camera.position.set(0, 0, 4.2);
+    this.earthGroup.rotation.set(0, 0, 0);
+  }
+
+  getDiagnostics(): RendererDiagnostics {
+    const info = this.renderer.info;
+    return {
+      quality: this.quality,
+      pixelRatio: this.renderer.getPixelRatio(),
+      width: this.canvas.clientWidth,
+      height: this.canvas.clientHeight,
+      geometries: info.memory.geometries,
+      textures: info.memory.textures,
+      drawCalls: info.render.calls,
+      triangles: info.render.triangles,
+      contextLost: this.contextLost,
+    };
+  }
+
+  private readonly render = (now: number): void => {
     if (this.disposed) return;
-    if (!document.hidden) {
-      if (this.autoRotate && !this.pointerDown && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        this.earthGroup.rotation.y += 0.00045;
+    const deltaSeconds = Math.min(0.05, Math.max(0, (now - this.lastFrameTime) / 1000));
+    this.lastFrameTime = now;
+
+    if (!document.hidden && !this.contextLost) {
+      if (this.autoRotate && !this.pointerDown && !this.reducedMotion.matches) {
+        this.earthGroup.rotation.y += deltaSeconds * 0.027;
       }
       this.renderer.render(this.scene, this.camera);
     }
@@ -75,8 +130,9 @@ export class EarthRenderer {
   private resize(): void {
     const width = Math.max(1, this.canvas.clientWidth);
     const height = Math.max(1, this.canvas.clientHeight);
-    const dpr = Math.min(window.devicePixelRatio || 1, width < 900 ? 1.5 : 2);
-    this.renderer.setPixelRatio(dpr);
+    const deviceDpr = window.devicePixelRatio || 1;
+    const cap = this.quality === 'performance' ? 1 : this.quality === 'high' ? (width < 900 ? 1.75 : 2) : (width < 900 ? 1.5 : 1.75);
+    this.renderer.setPixelRatio(Math.min(deviceDpr, cap));
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / height;
     this.camera.fov = width < 700 ? 42 : 36;
@@ -110,16 +166,35 @@ export class EarthRenderer {
   };
 
   private readonly handleVisibility = (): void => {
-    if (!document.hidden) this.renderer.render(this.scene, this.camera);
+    this.lastFrameTime = performance.now();
+    if (!document.hidden && !this.contextLost) this.renderer.render(this.scene, this.camera);
+  };
+
+  private readonly handleContextLost = (event: Event): void => {
+    event.preventDefault();
+    this.contextLost = true;
+    this.canvas.dispatchEvent(new CustomEvent('earth-renderer-status', { detail: { state: 'context-lost' } }));
+  };
+
+  private readonly handleContextRestored = (): void => {
+    this.contextLost = false;
+    this.resize();
+    this.canvas.dispatchEvent(new CustomEvent('earth-renderer-status', { detail: { state: 'ready' } }));
   };
 
   private createStars(): THREE.Points {
     const count = 1200;
     const positions = new Float32Array(count * 3);
+    let state = 0x5f3759df;
+    const random = (): number => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 0x100000000;
+    };
+
     for (let i = 0; i < count; i += 1) {
-      const radius = 18 + Math.random() * 14;
-      const theta = Math.random() * Math.PI * 2;
-      const z = Math.random() * 2 - 1;
+      const radius = 18 + random() * 14;
+      const theta = random() * Math.PI * 2;
+      const z = random() * 2 - 1;
       const planar = Math.sqrt(1 - z * z);
       positions[i * 3] = radius * planar * Math.cos(theta);
       positions[i * 3 + 1] = radius * z;
@@ -128,18 +203,23 @@ export class EarthRenderer {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     const material = new THREE.PointsMaterial({ color: 0xbfd8f5, size: 0.018, transparent: true, opacity: 0.7 });
-    return new THREE.Points(geometry, material);
+    const stars = new THREE.Points(geometry, material);
+    stars.name = 'decorative-deterministic-star-field';
+    return stars;
   }
 
   dispose(): void {
     this.disposed = true;
     cancelAnimationFrame(this.animationFrame);
+    this.animationFrame = 0;
     this.resizeObserver.disconnect();
     this.canvas.removeEventListener('pointerdown', this.handlePointerDown);
     this.canvas.removeEventListener('pointermove', this.handlePointerMove);
     this.canvas.removeEventListener('pointerup', this.handlePointerUp);
     this.canvas.removeEventListener('pointercancel', this.handlePointerUp);
     this.canvas.removeEventListener('wheel', this.handleWheel);
+    this.canvas.removeEventListener('webglcontextlost', this.handleContextLost);
+    this.canvas.removeEventListener('webglcontextrestored', this.handleContextRestored);
     document.removeEventListener('visibilitychange', this.handleVisibility);
     this.scene.traverse((object) => {
       if (object instanceof THREE.Mesh || object instanceof THREE.Points) {
