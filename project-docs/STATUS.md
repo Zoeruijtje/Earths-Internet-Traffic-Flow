@@ -3,89 +3,80 @@
 **Project:** Earth’s Internet Traffic Flow  
 **Working product title:** The Internet, Live  
 **Last updated:** 2026-08-17  
-**Stable state:** Phase 0 rebuild in progress on `build/phase-0-foundation-rebuild`  
+**Stable state:** Phase 0 rebuild and renderer hardening in progress on `build/phase-0-foundation-rebuild`  
 **Production deployment:** Not configured  
-**Implementation code:** Source scaffold now exists; exit gate not yet passed
+**Implementation code:** Source scaffold exists; exit gate not yet passed
 
 ## Current objective
 
-Replace the previous CDN-dependent static prototype with the repository-mandated Vite + React + strict TypeScript application, direct Three.js lifecycle, deterministic local QA commands, nested-path-safe Pages build tooling, and a truthful no-data interface shell. Phase 1 photorealistic Earth work remains blocked until the Phase 0 commands can be executed against the exact branch commit and reviewed with real screenshots.
+Finish a reproducible Phase 0 before enabling NASA production textures. The current branch replaces the previous CDN prototype with Vite + React + strict TypeScript, direct Three.js ownership, deterministic QA geometry, explicit renderer controls and a truthful no-data shell.
 
 ## Fixed constraints
 
 - Public repository: `Zoeruijtje/Earths-Internet-Traffic-Flow`.
-- Hosting target: GitHub Pages.
-- No custom GitHub Actions workflow under the current constraint.
-- Generated static build must be committed to `/docs` and eventually served from `main` → `/docs`.
+- Hosting target: GitHub Pages from generated `/docs` on `main`; no custom GitHub Actions workflow.
 - No Git LFS.
-- Real Internet data only; no fabricated live-looking demo events.
-- Real satellite imagery for Earth, with source and attribution recorded before Phase 1 is accepted.
-- Desktop and mobile are both first-class targets.
-- Every implementation pass must update logs and state incomplete scope honestly.
-- Major visual work requires actual browser screenshots and visual inspection, not only assertions.
+- No fabricated live-looking Internet activity.
+- NASA imagery requires recorded provenance/processing/checksums before Phase 1 acceptance.
+- Desktop, tablet and phone are first-class targets.
+- Visual claims require actual browser screenshots and inspection.
 
 ## Phase roadmap
 
 | Phase | Name | Status | Exit gate summary |
 |---|---|---:|---|
-| 0 | Repository and engineering foundation | **In progress — source scaffold implemented, runtime gate pending** | Clean install, typecheck/lint/unit/browser/build/Pages verification, screenshot review |
-| 1 | Photorealistic Earth and premium interface shell | Not started on the rebuild branch | NASA-derived assets, Earth visual QA, geometry/input gate |
-| 2 | RIPE Atlas measured live layer | Not started | Genuine streamed measurements, truthful endpoint semantics, robust reconnect/replay |
-| 3 | RIPE RIS routing layer | Not started | Live BGP events shown as routing—not traffic—with bounded performance |
-| 4 | Infrastructure, outages, and satellite extensions | Not started | Each source legally/technically verified and independently toggleable |
-| 5 | Interaction depth, sonification, sharing, and cinematic polish | Not started | Complete UX, accessibility, performance, failure-state, and visual QA gates |
-| 6 | Release hardening and public launch | Not started | Production build, attribution, documentation, regression suite, Pages publication |
+| 0 | Repository and engineering foundation | **In progress — source and renderer hardening implemented; runtime gate pending** | Clean install, lockfile, typecheck/lint/unit/browser/build/Pages verification, screenshot review |
+| 1 | Photorealistic Earth and premium interface shell | Not started on rebuild branch | NASA derivatives, solar/night/atmosphere QA, geometry/input gate |
+| 2 | RIPE Atlas measured live layer | Not started | Genuine measurements and source-health/reconnect semantics |
+| 3 | RIPE RIS routing layer | Not started | BGP shown as routing, never traffic |
+| 4 | Verified extension layers | Not started | Per-source legal/technical/semantic gate |
+| 5 | Interaction depth and cinematic polish | Not started | UX/accessibility/performance gate |
+| 6 | Release hardening | Not started | Full regression, attribution and Pages launch |
 
 ## Implemented on the rebuild branch
 
-- `package.json` with pinned React, Three.js, Vite, TypeScript, Vitest, ESLint and Playwright dependencies.
-- Strict TypeScript configuration with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`.
-- React application shell with an explicit `DATA NOT CONNECTED` state.
-- Direct Three.js `EarthRenderer` lifecycle outside React's frame loop.
-- Bounded resize/DPR handling, pointer rotation, wheel zoom, reduced-motion-aware auto rotation, hidden-page render suppression and renderer disposal.
-- One documented Earth-local coordinate convention and unit tests for cardinal positions, round trip and antipodal great-circle interpolation.
-- Responsive desktop, portrait phone/tablet and landscape-phone shell CSS.
-- Playwright shell test and seven-viewport screenshot harness.
-- Deterministic `build:pages` and `verify:pages` scripts; Vite uses relative asset URLs for the Pages repository subpath.
-- Architecture documentation.
+- Pinned Vite/React/TypeScript/Three.js/Vitest/ESLint/Playwright scaffold.
+- Direct `EarthRenderer` outside React's frame loop.
+- Deterministic decorative star geometry so screenshot comparisons are reproducible.
+- Frame-rate-independent auto rotation rather than frame-count-dependent rotation.
+- Hidden-page render suppression and WebGL context-loss/restoration state.
+- `Performance`, `Balanced` and `High` DPR quality caps with user controls.
+- Low-frequency renderer diagnostics sourced from `renderer.info`.
+- Explicit pause/resume rotation and reset-view controls.
+- Canonical Earth-local coordinate convention.
+- Canvas-local pointer-to-NDC utility that deliberately avoids DPR double application.
+- Unit-test coverage defined for coordinate and pointer mathematics.
+- Responsive desktop/portrait/landscape shell and seven-viewport Playwright screenshot harness.
+- Deterministic Pages build/verification tooling with relative Vite asset paths.
+- Explicit `DATA NOT CONNECTED` state and zero fake network events.
 
 ## Important correction from the previous pass
 
-The HTML report shown by the user on 2026-08-17 contains `FileNotFoundError` for publication/browser-review evidence and states that no screenshots were produced. Those results are a failed verification attempt. They are not evidence that the prior branch passed Phase 0 or Phase 1.
-
-The previous `build/phase-0-1-earth-foundation` branch also contains a manually authored `/docs/index.html` that imports Three.js from a public CDN. It is therefore not being promoted as the source of truth for the rebuild.
+The earlier HTML execution report supplied by the user contained `FileNotFoundError` for publication/browser review and said no screenshots were produced. It is failed evidence, not a completed gate. The previous branch also hand-authored `/docs` and imported Three.js from a CDN, so it is not the rebuild source of truth.
 
 ## Locked architectural decisions
 
 ### AD-001 — Static GitHub Pages deployment
-
-Use a modern local build toolchain, but commit generated static production output to `/docs`. GitHub Pages should ultimately publish `/docs` from `main`. Do not add a custom Actions workflow while the user’s Actions constraint remains active.
+Generated `/docs` only; no custom workflow under the current constraint.
 
 ### AD-002 — Direct Three.js renderer
+React owns low-frequency UI only. Scene lifecycle and frame updates stay in Three.js.
 
-Use Three.js directly for the 3D scene and render loop. React owns low-frequency UI composition only.
+### AD-003 — Truth-labelled data
+Future layers use **MEASURED**, **OBSERVED**, **INFRASTRUCTURE**, **DERIVED VISUAL**, or **RECORDED**. Phase 0 shows no Internet events.
 
-### AD-003 — Truth-labelled layers
+### AD-004 — Earth-local coordinates
+`+Y` north, `+X` equator/0°, `+Z` equator/+90°E. All geographic objects share this frame.
 
-Every future visible data layer must expose **MEASURED**, **OBSERVED**, **INFRASTRUCTURE**, **DERIVED VISUAL**, or **RECORDED** semantics. Phase 0 intentionally displays no Internet events.
+### AD-005 — Pointer coordinates
+Raycasting must derive NDC from `canvas.getBoundingClientRect()` in CSS pixels. DPR is renderer resolution only and must not be multiplied into pointer coordinates.
 
-### AD-004 — Earth-local coordinate convention
-
-Current implementation convention:
-
-- `+Y` = geographic north pole;
-- `+X` = equator / longitude `0°`;
-- `+Z` = equator / longitude `+90°E`.
-
-All geographic scene content must share the same Earth-local group.
-
-### AD-005 — `/docs` is generated output
-
-Human-authored documentation belongs in `/project-docs`. `/docs` must only be produced by `npm run build:pages`; do not hand-edit it.
+### AD-006 — `/docs` is generated output
+Never hand-edit `/docs`; source must build and pass before generated output is committed.
 
 ## First unmet exit gate
 
-A clean dependency installation and the following commands must be executed against one exact rebuild commit:
+A clean dependency installation and these commands still need to run against one exact rebuild commit:
 
 ```text
 npm run typecheck
@@ -98,12 +89,12 @@ npm run test:e2e
 npm run test:visual
 ```
 
-The resulting seven screenshots must then be inspected, not merely generated. Until that happens, Phase 0 remains open and `/docs` should not be committed as a purported verified production build.
+The seven resulting screenshots must then be inspected critically. Until that happens, Phase 0 remains open and the neutral globe must not be described as photorealistic or NASA-derived.
 
 ## Known gaps / next pass
 
-1. Produce and commit a lockfile from a clean package install.
-2. Run the complete Phase 0 command gate against the exact commit and fix every failure.
-3. Generate the seven viewport screenshots and visually inspect composition, clipping, text size, safe areas and WebGL runtime errors.
-4. Only after the Phase 0 gate passes, begin Phase 1 with locally committed, processed NASA Blue Marble / Black Marble derivatives and complete asset provenance/checksums.
-5. Do not connect RIPE Atlas or any other live data merely to make the interface look active.
+1. Generate a clean lockfile and execute the complete command gate.
+2. Fix compile/lint/browser defects discovered by that run.
+3. Capture and inspect all seven required viewports, including controls and diagnostics states.
+4. Generate `/docs` only from the passing source build.
+5. Then begin Phase 1 with processed, locally committed NASA Blue Marble and Black Marble derivatives, asset checksums, UTC solar lighting and the first visually reviewed Earth shader.
