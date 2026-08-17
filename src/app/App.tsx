@@ -1,18 +1,48 @@
-import { useEffect, useRef } from 'react';
-import { EarthRenderer } from '../scene/EarthRenderer';
+import { useEffect, useRef, useState } from 'react';
+import { EarthRenderer, type QualityMode, type RendererDiagnostics } from '../scene/EarthRenderer';
+
+function formatUtc(date: Date): string {
+  return `${date.toISOString().slice(0, 19).replace('T', ' ')} UTC`;
+}
 
 export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rendererRef = useRef<EarthRenderer | null>(null);
+  const [quality, setQuality] = useState<QualityMode>('balanced');
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [diagnostics, setDiagnostics] = useState<RendererDiagnostics | null>(null);
+  const [clock, setClock] = useState(() => new Date());
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const renderer = new EarthRenderer(canvas);
+    rendererRef.current = renderer;
     renderer.start();
 
-    return () => renderer.dispose();
+    const sample = window.setInterval(() => setDiagnostics(renderer.getDiagnostics()), 1000);
+    const tick = window.setInterval(() => setClock(new Date()), 1000);
+    setDiagnostics(renderer.getDiagnostics());
+
+    return () => {
+      window.clearInterval(sample);
+      window.clearInterval(tick);
+      renderer.dispose();
+      rendererRef.current = null;
+    };
   }, []);
+
+  const changeQuality = (next: QualityMode) => {
+    setQuality(next);
+    rendererRef.current?.setQuality(next);
+  };
+
+  const toggleRotation = () => {
+    const next = !autoRotate;
+    setAutoRotate(next);
+    rendererRef.current?.setAutoRotate(next);
+  };
 
   return (
     <main className="app-shell">
@@ -56,11 +86,39 @@ export function App() {
         <p className="truth-note">
           No random routes, counters, packets, BGP activity or simulated outages are rendered in this phase.
         </p>
+
+        <div className="renderer-controls" aria-label="Renderer controls">
+          <label>
+            <span>Render quality</span>
+            <select value={quality} onChange={(event) => changeQuality(event.target.value as QualityMode)}>
+              <option value="performance">Performance</option>
+              <option value="balanced">Balanced</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <div className="control-row">
+            <button type="button" onClick={toggleRotation}>{autoRotate ? 'Pause rotation' : 'Resume rotation'}</button>
+            <button type="button" onClick={() => rendererRef.current?.resetView()}>Reset view</button>
+          </div>
+        </div>
+
+        {diagnostics && (
+          <details className="diagnostics">
+            <summary>Renderer diagnostics</summary>
+            <dl>
+              <div><dt>Canvas</dt><dd>{diagnostics.width} × {diagnostics.height}</dd></div>
+              <div><dt>Pixel ratio</dt><dd>{diagnostics.pixelRatio.toFixed(2)}</dd></div>
+              <div><dt>Draw calls</dt><dd>{diagnostics.drawCalls}</dd></div>
+              <div><dt>Triangles</dt><dd>{diagnostics.triangles.toLocaleString()}</dd></div>
+              <div><dt>Context</dt><dd>{diagnostics.contextLost ? 'LOST' : 'READY'}</dd></div>
+            </dl>
+          </details>
+        )}
       </aside>
 
       <footer className="bottom-instrument">
         <span>UTC scene clock</span>
-        <time dateTime={new Date().toISOString()}>{new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC</time>
+        <time dateTime={clock.toISOString()}>{formatUtc(clock)}</time>
       </footer>
     </main>
   );
